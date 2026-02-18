@@ -1,0 +1,2110 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Roshup: RotaCloud Shift Uploader</title>
+    <style>
+        :root {
+            --bg: #f8f8f8;
+            --card: #ffffff;
+            --text: #000;
+            --muted: #666;
+            --line: #e5e5e7;
+            --ok: #34c759;
+            --warn: #ff9500;
+            --bad: #ff3b30;
+            --accent: #007aff;
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            --radius: 12px;
+        }
+
+        body.dark {
+            --bg: #111113;
+            --card: #1c1c1f;
+            --text: #f5f5f7;
+            --muted: #a1a1aa;
+            --line: #2f2f35;
+            --accent: #4b9dff;
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.32);
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", sans-serif;
+            line-height: 1.6;
+        }
+
+        header {
+            padding: 16px 16px 0px;
+            max-width: 1080px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        h1 {
+            margin: 0 0 4px;
+            font-size: 24px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+
+        .header-meta {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .sub {
+            margin: 0;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .section-note {
+            margin: -4px 0 8px;
+            color: var(--muted);
+            font-size: 11px;
+        }
+
+        .flow {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .flow-step {
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 12px;
+            background: color-mix(in srgb, var(--card) 96%, var(--bg));
+        }
+
+        .step-head {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .step-number {
+            width: 22px;
+            height: 22px;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--muted);
+            background: var(--card);
+            flex: 0 0 22px;
+        }
+
+        .step-title {
+            margin: 0;
+            font-size: 13px;
+            font-weight: 600;
+            line-height: 1.3;
+        }
+
+        .step-copy {
+            margin: 2px 0 0;
+            color: var(--muted);
+            font-size: 11px;
+            line-height: 1.4;
+        }
+
+        .action-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .action-row > * {
+            flex: 1;
+        }
+
+        .compact-grid {
+            margin-top: 10px;
+        }
+
+        main {
+            max-width: 1080px;
+            margin: 0 auto;
+            padding: 16px;
+            display: grid;
+            gap: 16px;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        @media (max-width: 1080px) {
+            main {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .app-footer {
+            max-width: 1080px;
+            margin: 0 auto;
+            padding: 0 16px 16px;
+            color: var(--muted);
+            font-size: 11px;
+            text-align: center;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 16px;
+        }
+
+        .card h2 {
+            margin: 0 0 12px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        label {
+            display: block;
+            font-size: 11px;
+            color: var(--muted);
+            margin: 10px 0 6px;
+            font-weight: 500;
+        }
+
+        label.required::after {
+            content: " *";
+            color: var(--bad);
+            font-weight: 700;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="number"],
+        select {
+            width: 100%;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 9px 11px;
+            font-size: 12px;
+            outline: none;
+            background: #fff;
+            color: var(--text);
+            transition: all 0.2s ease;
+        }
+
+        body.dark input[type="text"],
+        body.dark input[type="password"],
+        body.dark input[type="number"],
+        body.dark select,
+        body.dark #tokenFile,
+        body.dark #file {
+            background: #25252b;
+            border-color: var(--line);
+            color: var(--text);
+        }
+
+        input:focus,
+        select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+        }
+
+        .field-missing {
+            border-color: var(--bad) !important;
+            box-shadow: 0 0 0 3px rgba(255, 59, 48, 0.14) !important;
+            background: color-mix(in srgb, var(--card) 90%, rgba(255, 59, 48, 0.12));
+        }
+
+        .field-ok {
+            border-color: rgba(52, 199, 89, 0.45) !important;
+            box-shadow: 0 0 0 3px rgba(52, 199, 89, 0.1) !important;
+        }
+
+        .required-note {
+            margin: -2px 0 8px;
+            color: var(--muted);
+            font-size: 10px;
+        }
+
+        .row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .row>* {
+            flex: 1
+        }
+
+        .btn {
+            appearance: none;
+            border: none;
+            padding: 9px 12px;
+            border-radius: 10px;
+            font-weight: 500;
+            font-size: 12px;
+            cursor: pointer;
+            background: var(--accent);
+            color: white;
+            transition: all 0.15s ease;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 2px rgba(190, 190, 190, 0.3);
+        }
+
+        .btn:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .btn.secondary {
+            background: #f5f5f5;
+            color: var(--text);
+            border: 1px solid var(--line);
+        }
+
+        body.dark .btn.secondary {
+            background: #2b2b31;
+            color: var(--text);
+        }
+
+        .btn.secondary:hover:not(:disabled) {
+            background: #efefef;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 9px;
+            border-radius: 8px;
+            border: 1px solid var(--line);
+            font-size: 11px;
+            color: var(--muted);
+            background: #fafafa;
+        }
+
+        .pill b {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .grid2 {
+            display: grid;
+            gap: 10px;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .muted {
+            color: var(--muted)
+        }
+
+        .hr {
+            height: 1px;
+            background: var(--line);
+            margin: 14px 0;
+        }
+
+        .toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 10px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: #fafafa;
+        }
+
+        body.dark .toggle,
+        body.dark .week-info,
+        body.dark .status,
+        body.dark .flow-step,
+        body.dark table,
+        body.dark .preview-container,
+        body.dark .pill,
+        body.dark .badge {
+            background: #25252b;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .switch-input {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .switch-track {
+            width: 42px;
+            height: 26px;
+            background: #d1d1d6;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            padding: 3px;
+            transition: background 0.2s ease;
+        }
+
+        .switch-thumb {
+            width: 20px;
+            height: 20px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
+            transform: translateX(0);
+            transition: transform 0.2s ease;
+        }
+
+        .switch-input:checked + .switch-track {
+            background: var(--ok);
+        }
+
+        .switch-input:checked + .switch-track .switch-thumb {
+            transform: translateX(16px);
+        }
+
+        .switch-input:focus-visible + .switch-track {
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.2);
+        }
+
+        .status {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid var(--line);
+            background: #fafafa;
+            font-size: 12px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-top: 5px;
+            flex-shrink: 0;
+        }
+
+        .dot.ok {
+            background: var(--ok)
+        }
+
+        .dot.warn {
+            background: var(--warn)
+        }
+
+        .dot.bad {
+            background: var(--bad)
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: #fff;
+            font-size: 13px;
+        }
+
+        th,
+        td {
+            padding: 8px 10px;
+            border-bottom: 1px solid var(--line);
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background: #fafafa;
+            color: var(--muted);
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover {
+            background: #fafafa;
+        }
+
+        body.dark th {
+            background: #2b2b31;
+        }
+
+        body.dark tr:hover {
+            background: #303038;
+        }
+
+        .kpi {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .kpi .pill {
+            background: #fff;
+        }
+
+        .log {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 11px;
+            white-space: pre-wrap;
+            background: #0b0b10;
+            color: #f3f3f7;
+            border-radius: 10px;
+            padding: 10px;
+            border: 1px solid rgba(255, 255, 255, .08);
+            min-height: 190px;
+            max-height: 190px;
+            overflow: auto;
+        }
+
+        .preview-container {
+            max-height: 340px;
+            overflow-y: auto;
+            border-radius: 10px;
+            background: #fff;
+            padding: 10px;
+            border: 1px solid var(--line);
+            font-size: 13px;
+        }
+
+        .small {
+            font-size: 12px
+        }
+
+        .rightActions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            border: 1px solid var(--line);
+            background: #fff;
+            font-weight: 500;
+        }
+
+        .badge.ok {
+            color: var(--ok);
+            background: rgba(52, 199, 89, 0.08);
+            border-color: rgba(52, 199, 89, 0.2);
+        }
+
+        .badge.warn {
+            color: var(--warn);
+            background: rgba(255, 149, 0, 0.08);
+            border-color: rgba(255, 149, 0, 0.2);
+        }
+
+        .badge.bad {
+            color: var(--bad);
+            background: rgba(255, 59, 48, 0.08);
+            border-color: rgba(255, 59, 48, 0.2);
+        }
+
+        .week-info {
+            background: #f5f5f5;
+            border-radius: 10px;
+            padding: 10px;
+            font-size: 12px;
+            margin-bottom: 12px;
+        }
+
+        .week-range {
+            margin-top: 4px;
+            color: var(--muted);
+            font-size: 11px;
+        }
+
+        .step-feedback {
+            margin-top: 10px;
+            font-size: 11px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 8px 10px;
+            color: var(--muted);
+            background: color-mix(in srgb, var(--card) 92%, var(--bg));
+            transition: border-color .2s ease, background .2s ease, color .2s ease;
+        }
+
+        .step-feedback.ok {
+            border-color: rgba(52, 199, 89, 0.35);
+            background: rgba(52, 199, 89, 0.08);
+            color: #14833b;
+        }
+
+        .step-feedback.warn {
+            border-color: rgba(255, 149, 0, 0.35);
+            background: rgba(255, 149, 0, 0.08);
+            color: #b36800;
+        }
+
+        .step-feedback.bad {
+            border-color: rgba(255, 59, 48, 0.35);
+            background: rgba(255, 59, 48, 0.08);
+            color: #b42318;
+        }
+
+        body.dark .step-feedback {
+            color: #c4c4cc;
+            background: #25252b;
+        }
+
+        body.dark .step-feedback.ok {
+            color: #73e39a;
+            background: rgba(52, 199, 89, 0.14);
+        }
+
+        body.dark .step-feedback.warn {
+            color: #ffc168;
+            background: rgba(255, 149, 0, 0.14);
+        }
+
+        body.dark .step-feedback.bad {
+            color: #ff8d86;
+            background: rgba(255, 59, 48, 0.14);
+        }
+
+        .validation-board {
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 10px;
+            background: color-mix(in srgb, var(--card) 95%, var(--bg));
+            margin-top: 12px;
+        }
+
+        .validation-title {
+            margin: 0 0 8px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .validation-list {
+            display: grid;
+            gap: 6px;
+        }
+
+        .validation-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            font-size: 11px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 6px 8px;
+            background: var(--card);
+        }
+
+        .validation-item .tag {
+            font-size: 10px;
+            font-weight: 600;
+            border-radius: 999px;
+            padding: 2px 8px;
+            border: 1px solid var(--line);
+        }
+
+        .validation-item.ok .tag {
+            color: #14833b;
+            border-color: rgba(52, 199, 89, 0.35);
+            background: rgba(52, 199, 89, 0.12);
+        }
+
+        .validation-item.warn .tag {
+            color: #b36800;
+            border-color: rgba(255, 149, 0, 0.35);
+            background: rgba(255, 149, 0, 0.12);
+        }
+
+        .validation-item.bad .tag {
+            color: #b42318;
+            border-color: rgba(255, 59, 48, 0.35);
+            background: rgba(255, 59, 48, 0.12);
+        }
+
+        body.dark .validation-board,
+        body.dark .validation-item {
+            background: #25252b;
+        }
+
+        #darkModeToggle {
+            border: 1px solid var(--line);
+            background: var(--card);
+            color: var(--text);
+            border-radius: 999px;
+            padding: 8px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #darkModeToggle:hover {
+            border-color: var(--accent);
+        }
+
+        .icon-toggle {
+            width: 18px;
+            height: 18px;
+            display: block;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .week-info b {
+            font-weight: 600;
+            color: var(--text);
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div>
+            <h1>Roshup</h1>
+            <p class="sub">RotaCloud Shift Uploader. Parse weekly shifts and upload in validated batches.</p>
+        </div>
+        <div class="header-meta">
+            <button id="darkModeToggle" class="p-2 rounded-full text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-300" aria-label="Toggle dark mode" type="button">
+              <svg id="sunIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="icon-toggle"><path d="M12 2.25a.75.75 0 0 1 .75.75v2.25a.75.75 0 0 1-1.5 0V3a.75.75 0 0 1 .75-.75ZM7.051 6.829a.75.75 0 0 0-1.06 1.06l1.59 1.59a.75.75 0 0 0 1.06-1.06l-1.59-1.59ZM16.95 6.829l1.59 1.59a.75.75 0 0 0 1.06-1.06l-1.59-1.59a.75.75 0 0 0-1.06 1.06ZM12 5.25a6.75 6.75 0 1 0 6.75 6.75A6.75 6.75 0 0 0 12 5.25ZM20.25 12a.75.75 0 0 1-.75.75h-2.25a.75.75 0 0 1 0-1.5H19.5a.75.75 0 0 1 .75.75ZM3.75 12a.75.75 0 0 1 .75-.75h2.25a.75.75 0 0 1 0 1.5H4.5a.75.75 0 0 1-.75-.75ZM16.95 17.171a.75.75 0 0 0 1.06 1.06l1.59-1.59a.75.75 0 0 0-1.06-1.06l-1.59 1.59ZM7.051 17.171l1.59 1.59a.75.75 0 0 0 1.06-1.06l-1.59-1.59a.75.75 0 0 0-1.06 1.06ZM12 18.75a.75.75 0 0 1 .75.75v2.25a.75.75 0 0 1-1.5 0v-2.25a.75.75 0 0 1 .75-.75Z"/></svg>
+              <svg id="moonIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="icon-toggle hidden"><path fill-rule="evenodd" d="M9.52 2.379a.75.75 0 0 1 .531.06C10.66 2.872 12 4.316 12 6c0 1.942-1.332 3.738-2.986 4.498A6.807 6.807 0 0 0 8 18a6.794 6.794 0 0 0 5.488 4.498A7.5 7.5 0 0 1 12 22.5c-3.12 0-6.062-1.464-8.086-3.864A10.51 10.51 0 0 1 10.5 4.5c1.455 0 2.86.377 4.123 1.071a.75.75 0 0 1 .06.531Z" clip-rule="evenodd"/></svg>
+            </button>
+        </div>
+    </header>
+    <main>
+        <section class="card">
+            <h2>Workflow</h2>
+            <p class="section-note">Follow the steps in order. The app keeps your progress visible at each stage.</p>
+
+            <div class="flow">
+                <div class="flow-step">
+                    <div class="step-head">
+                        <div>
+                            <p class="step-title">1. Connect to RotaCloud</p>
+                            <p class="step-copy">Use a token directly, or load it from a text file. You can optionally remember it on this device.</p>
+                        </div>
+                    </div>
+
+                    <label class="required">API Token</label>
+                    <input id="apiKey" type="password" placeholder="Bearer … (memory only)" />
+
+                    <div class="grid2 compact-grid">
+                        <div>
+                            <label>Load token from file (.txt)</label>
+                            <input id="tokenFile" type="file" accept=".txt,.token,text/plain" />
+                        </div>
+                        <div class="toggle" style="margin-top:24px;">
+                            <div style="font-weight:600; font-size:12px;">Remember token</div>
+                            <label class="switch">
+                                <input id="rememberToken" type="checkbox" class="switch-input" />
+                                <span class="switch-track"><span class="switch-thumb"></span></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="action-row">
+                        <button class="btn" id="btnConnect">Connect API</button>
+                        <button class="btn secondary" id="btnClear">Reset</button>
+                    </div>
+                    <div id="step1Feedback" class="step-feedback">Enter your API token, then connect.</div>
+                </div>
+
+                <div class="flow-step">
+                    <div class="step-head">
+                        <div>
+                            <p class="step-title">2. Choose file and week</p>
+                            <p class="step-copy">Pick your workbook, select the sheet, and confirm the week window used to map shift dates.</p>
+                        </div>
+                    </div>
+                    <p class="required-note">Fields marked * are required.</p>
+
+                    <div class="grid2 compact-grid">
+                        <div>
+                            <label class="required">Upload file (.xlsx)</label>
+                            <input id="file" type="file" accept=".xlsx" />
+                        </div>
+                        <div>
+                            <label class="required">Sheet</label>
+                            <select id="sheetSelect" disabled></select>
+                        </div>
+                    </div>
+
+                    <div class="grid2">
+                        <div>
+                            <label class="required">Year</label>
+                            <input id="year" type="number" min="2020" max="2100" />
+                        </div>
+                        <div>
+                            <label class="required">Week #</label>
+                            <input id="week" type="number" min="1" max="53" />
+                        </div>
+                    </div>
+
+                    <div id="weekInfo" class="week-info" style="display:none;">
+                        <div><b>Week <span id="weekNum"></span></b> • <span id="weekDates"></span></div>
+                        <div class="week-range">Start: <span id="weekStartDate">—</span> • End: <span id="weekEndDate">—</span></div>
+                    </div>
+
+                    <div class="action-row">
+                        <button class="btn secondary" id="btnSuggestWeek" disabled>Auto-detect Week</button>
+                        <button class="btn" id="btnParse" disabled>Parse Sheet</button>
+                    </div>
+                    <div id="step2Feedback" class="step-feedback">Load a workbook and confirm week details before parsing.</div>
+                </div>
+
+                <div class="flow-step">
+                    <div class="step-head">
+                        <div>
+                            <p class="step-title">3. Set upload behaviour</p>
+                            <p class="step-copy">Review assignment and publishing settings before dry-run checks or upload.</p>
+                        </div>
+                    </div>
+                    <p class="required-note">For upload, Location and Role are required.</p>
+
+                    <div class="grid2 compact-grid">
+                        <div>
+                            <label class="required">Location</label>
+                            <select id="locationSelect" disabled></select>
+                        </div>
+                        <div>
+                            <label class="required">Role</label>
+                            <select id="roleSelect" disabled></select>
+                        </div>
+                    </div>
+
+                    <div class="grid2 compact-grid">
+                        <div class="toggle">
+                            <div style="font-weight:600; font-size:12px;">Open Shifts</div>
+                            <label class="switch">
+                                <input id="toggleOpenShifts" type="checkbox" class="switch-input" />
+                                <span class="switch-track"><span class="switch-thumb"></span></span>
+                            </label>
+                        </div>
+
+                        <div class="toggle">
+                            <div style="font-weight:600; font-size:12px;">Publish?</div>
+                            <label class="switch">
+                                <input id="togglePublished" type="checkbox" class="switch-input" />
+                                <span class="switch-track"><span class="switch-thumb"></span></span>
+                            </label>
+                        </div>
+
+                        <div class="toggle">
+                            <div style="font-weight:600; font-size:12px;">Strict times</div>
+                            <label class="switch">
+                                <input id="toggleStrictTimes" type="checkbox" class="switch-input" checked />
+                                <span class="switch-track"><span class="switch-thumb"></span></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="grid2 compact-grid">
+                        <div>
+                            <label>Break for shifts >= 6h (minutes)</label>
+                            <input id="break6Input" type="number" min="0" max="240" step="5" value="30" />
+                        </div>
+                        <div>
+                            <label>Break for shifts >= 12h (minutes)</label>
+                            <input id="break12Input" type="number" min="0" max="240" step="5" value="60" />
+                        </div>
+                    </div>
+
+                    <div class="action-row">
+                        <button class="btn secondary" id="btnDryRun" disabled>Check Duplicates</button>
+                        <button class="btn" id="btnUpload" disabled>Upload Valid Shifts</button>
+                    </div>
+                    <div id="step3Feedback" class="step-feedback">Set location and role, then parse to enable upload actions.</div>
+                </div>
+            </div>
+
+        </section>
+
+        <section class="card">
+            <h2>Execution</h2>
+            <p class="section-note">Review system messages, validation output, and preview before upload.</p>
+
+            <div class="status" id="statusBox" style="margin-top:12px;">
+                <div class="dot warn" id="statusDot"></div>
+                <div>
+                    <div style="font-weight:600;" id="statusTitle">Ready</div>
+                    <div class="muted small" id="statusText">Enter your API token to connect.</div>
+                </div>
+            </div>
+
+            <div class="validation-board">
+                <p class="validation-title">Live Validation</p>
+                <div id="liveValidation" class="validation-list"></div>
+            </div>
+
+            <div class="hr"></div>
+
+            <div class="rightActions" style="justify-content:space-between; margin-bottom:12px;">
+                <h2 style="margin:0; font-size:13px;">Preview & Validation</h2>
+                <div class="kpi" id="kpis"></div>
+            </div>
+
+            <div id="previewArea" class="preview-container"><div class="muted">Load an Excel file to see shifts.</div></div>
+            <div class="hr"></div>
+            <div class="rightActions" style="justify-content:space-between; margin:12px 0 8px;">
+                <h2 style="margin:0; font-size:13px;">Activity Log</h2>
+            </div>
+            <div class="log" id="log"></div>
+
+        </section>
+    </main>
+
+    <footer class="app-footer">© 2026 Roshup • Version 3.0.0</footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <script>
+        (() => {
+            const S = {
+                apiKey: "",
+                users: [],
+                locations: [],
+                roles: [],
+                fourthToUserId: new Map(),
+                workbook: null,
+                sheets: [],
+                selectedSheet: "",
+                parsed: {
+                    mode: null,
+                    headerRow: null,
+                    columnMap: null,
+                    weekStart: null,
+                    weekEnd: null,
+                    shifts: [],
+                    issues: [],
+                    dryRun: null,
+                },
+                settings: {
+                    locationId: null,
+                    roleId: null,
+                    uploadOpenShifts: false,
+                    published: false,
+                    strictTimes: true,
+                    breakAfter6Hours: 30,
+                    breakAfter12Hours: 60,
+                },
+                runId: null,
+            };
+
+            const el = (id) => document.getElementById(id);
+
+            const ui = {
+                apiKey: el("apiKey"),
+                darkModeToggle: el("darkModeToggle"),
+                sunIcon: el("sunIcon"),
+                moonIcon: el("moonIcon"),
+                tokenFile: el("tokenFile"),
+                rememberToken: el("rememberToken"),
+                btnConnect: el("btnConnect"),
+                btnClear: el("btnClear"),
+                file: el("file"),
+                sheetSelect: el("sheetSelect"),
+                btnSuggestWeek: el("btnSuggestWeek"),
+                year: el("year"),
+                week: el("week"),
+                weekStartDate: el("weekStartDate"),
+                weekEndDate: el("weekEndDate"),
+                step1Feedback: el("step1Feedback"),
+                step2Feedback: el("step2Feedback"),
+                step3Feedback: el("step3Feedback"),
+                liveValidation: el("liveValidation"),
+                btnParse: el("btnParse"),
+                locationSelect: el("locationSelect"),
+                roleSelect: el("roleSelect"),
+                toggleOpenShifts: el("toggleOpenShifts"),
+                togglePublished: el("togglePublished"),
+                toggleStrictTimes: el("toggleStrictTimes"),
+                break6Input: el("break6Input"),
+                break12Input: el("break12Input"),
+                btnDryRun: el("btnDryRun"),
+                btnUpload: el("btnUpload"),
+                statusBox: el("statusBox"),
+                statusDot: el("statusDot"),
+                statusTitle: el("statusTitle"),
+                statusText: el("statusText"),
+                previewArea: el("previewArea"),
+                log: el("log"),
+                kpis: el("kpis"),
+            };
+
+            const TOKEN_STORAGE_KEY = "rotacloud_api_token";
+            const THEME_STORAGE_KEY = "rotacloud_theme";
+
+            function applyTheme(theme) {
+                const dark = theme === "dark";
+                document.body.classList.toggle("dark", dark);
+                if (ui.sunIcon && ui.moonIcon) {
+                    ui.sunIcon.classList.toggle("hidden", dark);
+                    ui.moonIcon.classList.toggle("hidden", !dark);
+                }
+            }
+
+            function initTheme() {
+                let theme = "";
+                try {
+                    theme = localStorage.getItem(THEME_STORAGE_KEY) || "";
+                } catch {}
+                if (!theme) {
+                    const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+                    theme = prefersDark ? "dark" : "light";
+                }
+                applyTheme(theme);
+            }
+
+            function toggleTheme() {
+                const isDark = document.body.classList.contains("dark");
+                const next = isDark ? "light" : "dark";
+                applyTheme(next);
+                try {
+                    localStorage.setItem(THEME_STORAGE_KEY, next);
+                } catch {}
+            }
+
+            function getSavedToken() {
+                try {
+                    return localStorage.getItem(TOKEN_STORAGE_KEY) || "";
+                } catch {
+                    return "";
+                }
+            }
+
+            function saveToken(token) {
+                try {
+                    localStorage.setItem(TOKEN_STORAGE_KEY, token);
+                } catch {}
+            }
+
+            function clearSavedToken() {
+                try {
+                    localStorage.removeItem(TOKEN_STORAGE_KEY);
+                } catch {}
+            }
+
+            function isWeekValidInputs() {
+                const year = Number(ui.year.value);
+                const week = Number(ui.week.value);
+                return Number.isFinite(year) && Number.isFinite(week) && week >= 1 && week <= 53;
+            }
+
+            function getUploadableCount() {
+                if (!Array.isArray(S.parsed.shifts) || !S.parsed.shifts.length) return 0;
+                return S.parsed.shifts.filter(s => {
+                    if (!S.settings.uploadOpenShifts && s.open_shift) return false;
+                    if (!s.location_id || !s.role_id) return false;
+                    if (!s.open_shift && !s.user_id) return false;
+                    if (s.flags?.duplicate) return false;
+                    return true;
+                }).length;
+            }
+
+            function setStepFeedback(elm, state, text) {
+                if (!elm) return;
+                elm.classList.remove("ok", "warn", "bad");
+                elm.classList.add(state);
+                elm.textContent = text;
+            }
+
+            function renderValidationRow(label, state, detail) {
+                const tag = state === "ok" ? "OK" : state === "warn" ? "Check" : "Action";
+                return `<div class="validation-item ${state}"><span>${escapeHtml(label)} - ${escapeHtml(detail)}</span><span class="tag">${tag}</span></div>`;
+            }
+
+            function refreshLiveFeedback() {
+                const connected = S.users.length > 0 && S.roles.length > 0 && S.locations.length > 0;
+                const hasToken = !!ui.apiKey.value.trim();
+                const hasWorkbook = !!S.workbook;
+                const hasSheet = !!S.selectedSheet;
+                const weekValid = isWeekValidInputs();
+                const hasParsed = (S.parsed.shifts.length + S.parsed.issues.length) > 0;
+                const hasLocation = !!S.settings.locationId;
+                const hasRole = !!S.settings.roleId;
+                const uploadableCount = getUploadableCount();
+                const duplicates = S.parsed.shifts.filter(s => s.flags?.duplicate).length;
+
+                function markField(field, isMissing, isValid = false) {
+                    if (!field) return;
+                    field.classList.toggle("field-missing", !!isMissing);
+                    field.classList.toggle("field-ok", !isMissing && !!isValid);
+                    field.setAttribute("aria-invalid", isMissing ? "true" : "false");
+                }
+
+                markField(ui.apiKey, !connected && !hasToken, connected || hasToken);
+                markField(ui.file, !hasWorkbook, hasWorkbook);
+                markField(ui.sheetSelect, hasWorkbook && !hasSheet, hasWorkbook && hasSheet);
+                markField(ui.year, !weekValid, weekValid);
+                markField(ui.week, !weekValid, weekValid);
+                markField(ui.locationSelect, hasParsed && !hasLocation, hasParsed && hasLocation);
+                markField(ui.roleSelect, hasParsed && !hasRole, hasParsed && hasRole);
+
+                if (connected) setStepFeedback(ui.step1Feedback, "ok", "Connected. API metadata is loaded and ready.");
+                else if (hasToken) setStepFeedback(ui.step1Feedback, "warn", "Token entered. Click Connect API to continue.");
+                else setStepFeedback(ui.step1Feedback, "bad", "Add an API token and connect to load locations, roles, and users.");
+
+                if (hasWorkbook && hasSheet && weekValid && hasParsed) {
+                    setStepFeedback(ui.step2Feedback, "ok", `Parsed ${S.parsed.shifts.length} shifts with ${S.parsed.issues.length} issue(s).`);
+                } else if (hasWorkbook && hasSheet && weekValid) {
+                    setStepFeedback(ui.step2Feedback, "warn", "Workbook and week are ready. Run Parse Sheet to generate shifts.");
+                } else {
+                    const needs = [!hasWorkbook ? "workbook" : "", !hasSheet ? "sheet" : "", !weekValid ? "valid week" : ""].filter(Boolean).join(", ");
+                    setStepFeedback(ui.step2Feedback, "bad", `Missing: ${needs || "inputs"}.`);
+                }
+
+                if (!hasParsed) {
+                    setStepFeedback(ui.step3Feedback, "warn", "Parse first, then review settings before dry run or upload.");
+                } else if (!hasLocation || !hasRole) {
+                    setStepFeedback(ui.step3Feedback, "bad", "Select both Location and Role to prepare uploadable shifts.");
+                } else if (uploadableCount > 0) {
+                    setStepFeedback(ui.step3Feedback, "ok", `${uploadableCount} shift(s) currently uploadable${duplicates ? ` (${duplicates} duplicate(s) flagged)` : ""}.`);
+                } else {
+                    setStepFeedback(ui.step3Feedback, "warn", "No uploadable shifts yet. Review open-shift and mapping rules.");
+                }
+
+                if (ui.liveValidation) {
+                    ui.liveValidation.innerHTML = [
+                        renderValidationRow("API connection", connected ? "ok" : "bad", connected ? "Connected" : (hasToken ? "Token ready" : "Token missing")),
+                        renderValidationRow("Workbook", hasWorkbook ? "ok" : "bad", hasWorkbook ? "Loaded" : "Not loaded"),
+                        renderValidationRow("Sheet", hasSheet ? "ok" : "warn", hasSheet ? "Selected" : "Choose a sheet"),
+                        renderValidationRow("Week", weekValid ? "ok" : "warn", weekValid ? "Valid range" : "Week must be 1–53"),
+                        renderValidationRow("Parse output", hasParsed ? "ok" : "warn", hasParsed ? `${S.parsed.shifts.length} shifts` : "Run Parse Sheet"),
+                        renderValidationRow("Assignment", (hasLocation && hasRole) ? "ok" : "warn", (hasLocation && hasRole) ? "Location + Role set" : "Set location and role"),
+                        renderValidationRow("Upload readiness", uploadableCount > 0 ? "ok" : "warn", uploadableCount > 0 ? `${uploadableCount} uploadable` : "No uploadable shifts")
+                    ].join("");
+                }
+
+                ui.btnParse.title = (hasWorkbook && hasSheet && weekValid) ? "Ready to parse" : "Load workbook, select sheet, and set a valid week";
+                ui.btnDryRun.title = hasParsed ? "Check duplicates against existing shifts" : "Parse the sheet first";
+                ui.btnUpload.title = uploadableCount > 0 ? "Upload uploadable shifts" : "No uploadable shifts yet";
+            }
+
+            function setStatus(kind, title, text) {
+                ui.statusDot.className = "dot " + (kind === "ok" ? "ok" : kind === "bad" ? "bad" : "warn");
+                ui.statusTitle.textContent = title;
+                ui.statusText.textContent = text || "";
+                refreshLiveFeedback();
+            }
+
+            function log(msg) {
+                const stamp = new Date().toLocaleString("en-GB", { hour12: false });
+                ui.log.textContent += `[${stamp}] ${msg}\n`;
+                ui.log.scrollTop = ui.log.scrollHeight;
+            }
+
+            function resetAll(clearStoredToken = false) {
+                Object.assign(S, {
+                    apiKey: "",
+                    users: [],
+                    locations: [],
+                    roles: [],
+                    fourthToUserId: new Map(),
+                    workbook: null,
+                    sheets: [],
+                    selectedSheet: "",
+                    parsed: { mode: null, headerRow: null, columnMap: null, weekStart: null, weekEnd: null, shifts: [], issues: [], dryRun: null },
+                    settings: { locationId: null, roleId: null, uploadOpenShifts: false, published: false, strictTimes: true, breakAfter6Hours: 30, breakAfter12Hours: 60 },
+                    runId: null,
+                });
+
+                if (clearStoredToken) clearSavedToken();
+                const savedToken = getSavedToken();
+
+                ui.apiKey.value = savedToken || "";
+                ui.rememberToken.checked = !!savedToken;
+                ui.tokenFile.value = "";
+                ui.file.value = "";
+                ui.sheetSelect.innerHTML = "";
+                ui.sheetSelect.disabled = true;
+                ui.year.value = new Date().getFullYear();
+                ui.week.value = getNextWeek();
+                ui.btnSuggestWeek.disabled = true;
+                ui.btnParse.disabled = true;
+
+                ui.locationSelect.innerHTML = "";
+                ui.roleSelect.innerHTML = "";
+                ui.locationSelect.disabled = true;
+                ui.roleSelect.disabled = true;
+
+                ui.toggleOpenShifts.checked = false;
+                ui.togglePublished.checked = false;
+                ui.toggleStrictTimes.checked = true;
+                ui.break6Input.value = "30";
+                ui.break12Input.value = "60";
+
+                ui.btnDryRun.disabled = true;
+                ui.btnUpload.disabled = true;
+
+                ui.previewArea.innerHTML = `<div class="muted">Load an Excel file to see shifts.</div>`;
+                ui.kpis.innerHTML = "";
+                ui.log.textContent = "";
+
+                document.getElementById("weekInfo").style.display = "none";
+
+                setStatus("warn", "Ready", "Enter your API token to connect.");
+                updateWeekDisplay();
+                refreshLiveFeedback();
+            }
+
+            function isoWeekStartDate(year, week) {
+                const jan4 = new Date(year, 0, 4);
+                const day = jan4.getDay();
+                const mondayOffset = (day === 0 ? -6 : 1 - day);
+                const week1Monday = new Date(year, 0, 4 + mondayOffset);
+                const result = new Date(week1Monday);
+                result.setDate(week1Monday.getDate() + (week - 1) * 7);
+                result.setHours(0, 0, 0, 0);
+                return result;
+            }
+
+            function getNextWeek() {
+                const today = new Date();
+                const year = today.getFullYear();
+                const jan4 = new Date(year, 0, 4);
+                const day = jan4.getDay();
+                const mondayOffset = (day === 0 ? -6 : 1 - day);
+                const week1Monday = new Date(year, 0, 4 + mondayOffset);
+                
+                let week = Math.floor((today.getTime() - week1Monday.getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1;
+                if (week < 1) {
+                    const prevYear = year - 1;
+                    const jan4Prev = new Date(prevYear, 0, 4);
+                    const dayPrev = jan4Prev.getDay();
+                    const offsetPrev = (dayPrev === 0 ? -6 : 1 - dayPrev);
+                    const week1MondayPrev = new Date(prevYear, 0, 4 + offsetPrev);
+                    week = Math.floor((today.getTime() - week1MondayPrev.getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1;
+                    return week;
+                } else if (week > 52) {
+                    week = 1;
+                }
+                return week + 1 > 53 ? 1 : week + 1;
+            }
+
+            function addDays(d, n) {
+                const x = new Date(d);
+                x.setDate(x.getDate() + n);
+                return x;
+            }
+
+            function updateWeekDisplay() {
+                const year = Number(ui.year.value);
+                const week = Number(ui.week.value);
+
+                if (!year || !week || week < 1 || week > 53) {
+                    document.getElementById("weekInfo").style.display = "none";
+                    if (ui.weekStartDate) ui.weekStartDate.textContent = "—";
+                    if (ui.weekEndDate) ui.weekEndDate.textContent = "—";
+                    refreshLiveFeedback();
+                    return;
+                }
+
+                const weekStart = isoWeekStartDate(year, week);
+                const weekEnd = addDays(weekStart, 6);
+
+                const startStr = weekStart.toLocaleDateString("en-GB", { day: "short", month: "short", year: "numeric" });
+                const endStr = weekEnd.toLocaleDateString("en-GB", { day: "short", month: "short", year: "numeric" });
+
+                document.getElementById("weekNum").textContent = week;
+                document.getElementById("weekDates").textContent = `${startStr} – ${endStr}`;
+                document.getElementById("weekInfo").style.display = "block";
+                if (ui.weekStartDate) ui.weekStartDate.textContent = startStr;
+                if (ui.weekEndDate) ui.weekEndDate.textContent = endStr;
+                refreshLiveFeedback();
+            }
+
+            function toUnixSeconds(d) {
+                return Math.floor(d.getTime() / 1000);
+            }
+
+            function fmtDate(d) {
+                return d.toLocaleDateString("en-GB", { weekday: "short", year: "numeric", month: "short", day: "2-digit" });
+            }
+
+            function parseTimeToMinutes(value, strict) {
+                if (value === null || value === undefined || value === "") return { ok: false, minutes: null, kind: "empty", raw: value };
+
+                if (typeof value === "number" && isFinite(value)) {
+                    const frac = value % 1;
+                    const minutes = Math.round(frac * 24 * 60);
+                    return { ok: true, minutes, kind: "excel-number", raw: value };
+                }
+
+                const s = String(value).trim();
+                if (!s) return { ok: false, minutes: null, kind: "empty", raw: value };
+
+                let m = s.match(/^(\d{1,2})\s*:\s*(\d{2})$/);
+                if (m) {
+                    const hh = parseInt(m[1], 10);
+                    const mm = parseInt(m[2], 10);
+                    if (hh >= 0 && hh <= 23 && mm >= 0 && mm <= 59) return { ok: true, minutes: hh * 60 + mm, kind: "hh:mm", raw: value };
+                    return { ok: false, minutes: null, kind: "bad-time", raw: value };
+                }
+
+                m = s.toLowerCase().match(/^(\d{1,2})(?:\s*:\s*(\d{2}))?\s*(am|pm)$/);
+                if (m) {
+                    let hh = parseInt(m[1], 10);
+                    const mm = m[2] ? parseInt(m[2], 10) : 0;
+                    const ap = m[3];
+                    if (hh < 1 || hh > 12 || mm < 0 || mm > 59) return { ok: false, minutes: null, kind: "bad-time", raw: value };
+                    if (ap === "am") {
+                        if (hh === 12) hh = 0;
+                    } else {
+                        if (hh !== 12) hh += 12;
+                    }
+                    return { ok: true, minutes: hh * 60 + mm, kind: "ampm", raw: value };
+                }
+
+                if (strict) return { ok: false, minutes: null, kind: "non-time-text", raw: value };
+                return { ok: false, minutes: null, kind: "unknown", raw: value };
+            }
+
+            function minutesToHHMM(mins) {
+                const hh = Math.floor(mins / 60);
+                const mm = mins % 60;
+                return String(hh).padStart(2, "0") + ":" + String(mm).padStart(2, "0");
+            }
+
+            function clampBreakMinutes(value, fallback) {
+                const n = Number(value);
+                if (!isFinite(n)) return fallback;
+                return Math.max(0, Math.min(240, Math.round(n)));
+            }
+
+            function autoBreakMinutes(durationMinutes, settings) {
+                const break6 = clampBreakMinutes(settings?.breakAfter6Hours, 30);
+                const break12 = clampBreakMinutes(settings?.breakAfter12Hours, 60);
+                if (durationMinutes >= 12 * 60) return break12;
+                if (durationMinutes >= 6 * 60) return break6;
+                return 0;
+            }
+
+            async function apiFetch(path) {
+                const base = "https://api.rotacloud.com/v1";
+                const res = await fetch(base + path, {
+                    headers: {
+                        "Authorization": "Bearer " + S.apiKey,
+                        "Accept": "application/json",
+                        "Content-Type": "application/json",
+                    }
+                });
+                const text = await res.text();
+                let data = null;
+                try { data = text ? JSON.parse(text) : null; } catch { data = text; }
+                if (!res.ok) {
+                    const msg = typeof data === "object" && data ? (data.message || data.error || JSON.stringify(data)) : String(data);
+                    throw new Error(`${res.status} - ${msg}`);
+                }
+                return data;
+            }
+
+            async function apiPost(path, body) {
+                const base = "https://api.rotacloud.com/v1";
+                const res = await fetch(base + path, {
+                    method: "POST",
+                    headers: {
+                        "Authorization": "Bearer " + S.apiKey,
+                        "Accept": "application/json",
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(body)
+                });
+                const text = await res.text();
+                let data = null;
+                try { data = text ? JSON.parse(text) : null; } catch { data = text; }
+                if (!res.ok) {
+                    const msg = typeof data === "object" && data ? (data.message || data.error || JSON.stringify(data)) : String(data);
+                    throw new Error(`${res.status} - ${msg}`);
+                }
+                return data;
+            }
+
+            function buildFourthIdMapFromUsers(users) {
+                const map = new Map();
+                for (const u of users) {
+                    const ln = String(u.last_name ?? "").trim();
+                    const m = ln.match(/(\d{5,})\s*$/);
+                    if (m) {
+                        map.set(m[1], u.id);
+                    }
+                }
+                return map;
+            }
+
+            function sheetToMatrix(wb, sheetName) {
+                const ws = wb.Sheets[sheetName];
+                const rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: "" });
+                return rows;
+            }
+
+            function normaliseHeader(s) {
+                return String(s ?? "").trim().replace(/\s+/g, " ").toLowerCase();
+            }
+
+            const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+            function buildDayHeaderVariants() {
+                const map = new Map();
+                for (const d of DAYS) {
+                    const full = ({ Mon: "Monday", Tue: "Tuesday", Wed: "Wednesday", Thu: "Thursday", Fri: "Friday", Sat: "Saturday", Sun: "Sunday" })[d];
+                    const startKeys = [`${d} start`, `${full.toLowerCase()} start`];
+                    const finishKeys = [`${d} finish`, `${full.toLowerCase()} finish`, `${d} end`, `${full.toLowerCase()} end`];
+                    map.set(d, { startKeys, finishKeys });
+                }
+                return map;
+            }
+            const DAY_KEYS = buildDayHeaderVariants();
+
+            function findHeaderRow(matrix) {
+                const max = Math.min(80, matrix.length);
+                for (let r = 0; r < max; r++) {
+                    const row = matrix[r].map(normaliseHeader);
+                    const hasEmpNo = row.includes("employee number") || row.includes("fourth id") || row.includes("employee id");
+                    const hasFirst = row.includes("first name");
+                    const hasLast = row.includes("last name");
+                    const hasMonStart = row.includes("mon start") || row.includes("monday start");
+                    const hasMonFinish = row.includes("mon finish") || row.includes("monday finish") || row.includes("mon end");
+                    if (hasEmpNo && hasFirst && hasLast && hasMonStart && hasMonFinish) {
+                        return r;
+                    }
+                }
+                return null;
+            }
+
+            function buildColumnMap(headerRow) {
+                const cols = headerRow.map(normaliseHeader);
+
+                const col = (nameVariants) => {
+                    for (const v of nameVariants) {
+                        const idx = cols.indexOf(normaliseHeader(v));
+                        if (idx !== -1) return idx;
+                    }
+                    return -1;
+                };
+
+                const empCol = col(["Employee Number", "Fourth ID", "Employee ID"]);
+                const firstCol = col(["First Name"]);
+                const lastCol = col(["Last Name"]);
+
+                const dayCols = {};
+                for (const d of DAYS) {
+                    let sIdx = -1, fIdx = -1;
+                    for (let i = 0; i < cols.length; i++) {
+                        const c = cols[i];
+                        const dLower = d.toLowerCase();
+                        const fullLower = ({ Mon: "monday", Tue: "tuesday", Wed: "wednesday", Thu: "thursday", Fri: "friday", Sat: "saturday", Sun: "sunday" })[d].toLowerCase();
+                        const isDay = c.includes(dLower) || c.includes(fullLower);
+                        if (isDay && c.includes("start") && sIdx === -1) sIdx = i;
+                        if (isDay && (c.includes("finish") || c.includes("end")) && fIdx === -1) fIdx = i;
+                    }
+                    dayCols[d] = { start: sIdx, finish: fIdx };
+                }
+
+                return { empCol, firstCol, lastCol, dayCols };
+            }
+
+            function detectMode(headerRow) {
+                const cols = headerRow.map(normaliseHeader);
+                if (cols.includes("fourth id")) return "TEMPLATE";
+                if (cols.includes("employee number")) return "SCHEDULER";
+                return "UNKNOWN";
+            }
+
+            function isLikelySectionHeader(rowObj) {
+                const hasEmp = !!rowObj.fourthId;
+                if (hasEmp) return false;
+
+                const nameBlob = `${rowObj.firstName} ${rowObj.lastName}`.trim().toLowerCase();
+                const looksLikeSection = nameBlob && nameBlob.length > 0 && !nameBlob.includes("open shift");
+
+                const anyTime = DAYS.some(d => rowObj.rawTimes[d]?.startRaw || rowObj.rawTimes[d]?.finishRaw);
+                return looksLikeSection && !anyTime;
+            }
+
+            function isOpenShiftRow(rowObj) {
+                const nameBlob = `${rowObj.firstName} ${rowObj.lastName}`.trim().toLowerCase();
+                const anyTime = DAYS.some(d => rowObj.rawTimes[d]?.startRaw || rowObj.rawTimes[d]?.finishRaw);
+                const noEmp = !rowObj.fourthId;
+                return anyTime && (nameBlob.includes("open shift") || noEmp);
+            }
+
+            function isTotalsSummaryRow(rowObj) {
+                const idBlob = String(rowObj.fourthId ?? "").trim().toLowerCase();
+                const nameBlob = `${rowObj.firstName} ${rowObj.lastName}`.trim().toLowerCase();
+                const combined = `${idBlob} ${nameBlob}`.trim();
+                if (!combined) return false;
+                return /\b(grand\s+total|sub\s*total|total)\b/.test(combined);
+            }
+
+            function makeRowObject(matrixRow, colMap) {
+                const get = (i) => (i >= 0 ? matrixRow[i] : "");
+                const fourthId = String(get(colMap.empCol) ?? "").trim();
+                const firstName = String(get(colMap.firstCol) ?? "").trim();
+                const lastName = String(get(colMap.lastCol) ?? "").trim();
+
+                const rawTimes = {};
+                for (const d of DAYS) {
+                    const sc = colMap.dayCols[d].start;
+                    const fc = colMap.dayCols[d].finish;
+                    rawTimes[d] = {
+                        startRaw: sc >= 0 ? get(sc) : "",
+                        finishRaw: fc >= 0 ? get(fc) : "",
+                    };
+                }
+
+                return { fourthId, firstName, lastName, rawTimes };
+            }
+
+            function buildShiftsFromMatrix(matrix, headerRowIndex, colMap, weekStart, settings) {
+                const issues = [];
+                const shifts = [];
+
+                const weekEnd = addDays(weekStart, 6);
+
+                for (let r = headerRowIndex + 1; r < matrix.length; r++) {
+                    const rowObj = makeRowObject(matrix[r], colMap);
+
+                    const emptyRow = !rowObj.fourthId && !rowObj.firstName && !rowObj.lastName &&
+                        DAYS.every(d => !rowObj.rawTimes[d].startRaw && !rowObj.rawTimes[d].finishRaw);
+                    if (emptyRow) continue;
+
+                    if (isLikelySectionHeader(rowObj) || isTotalsSummaryRow(rowObj)) continue;
+
+                    const openShift = isOpenShiftRow(rowObj);
+
+                    if (openShift && !settings.uploadOpenShifts) {
+                        continue;
+                    }
+
+                    let userId = null;
+                    if (!openShift) {
+                        const fid = rowObj.fourthId;
+                        if (!fid) {
+                            issues.push({ severity: "error", code: "MISSING_FOURTH_ID", message: `Row ${r + 1}: Missing Fourth ID.`, ref: { row: r + 1 } });
+                            continue;
+                        }
+                        userId = S.fourthToUserId.get(fid) ?? null;
+                        if (!userId) {
+                            issues.push({ severity: "error", code: "UNMAPPED_USER", message: `Row ${r + 1}: Fourth ID ${fid} not found.`, ref: { row: r + 1, fourthId: fid } });
+                        }
+                    }
+
+                    for (let di = 0; di < DAYS.length; di++) {
+                        const d = DAYS[di];
+                        const startRaw = rowObj.rawTimes[d].startRaw;
+                        const finishRaw = rowObj.rawTimes[d].finishRaw;
+
+                        const startEmpty = startRaw === "" || startRaw === null || startRaw === undefined;
+                        const finishEmpty = finishRaw === "" || finishRaw === null || finishRaw === undefined;
+
+                        if (startEmpty && finishEmpty) continue;
+
+                        if (startEmpty || finishEmpty) {
+                            issues.push({ severity: "error", code: "MISSING_START_OR_FINISH", message: `Row ${r + 1} ${d}: Start/Finish incomplete.`, ref: { row: r + 1, day: d } });
+                            continue;
+                        }
+
+                        const startParsed = parseTimeToMinutes(startRaw, settings.strictTimes);
+                        const finishParsed = parseTimeToMinutes(finishRaw, settings.strictTimes);
+
+                        if (!startParsed.ok || !finishParsed.ok) {
+                            const which = (!startParsed.ok && !finishParsed.ok) ? "start & finish" : (!startParsed.ok ? "start" : "finish");
+                            issues.push({ severity: "error", code: "BAD_TIME", message: `Row ${r + 1} ${d}: Invalid ${which} time.`, ref: { row: r + 1, day: d, startRaw, finishRaw } });
+                            continue;
+                        }
+
+                        const dayDate = addDays(weekStart, di);
+                        const startDateTime = new Date(dayDate);
+                        startDateTime.setHours(0, 0, 0, 0);
+                        startDateTime.setMinutes(startParsed.minutes);
+
+                        const endDateTime = new Date(dayDate);
+                        endDateTime.setHours(0, 0, 0, 0);
+                        endDateTime.setMinutes(finishParsed.minutes);
+
+                        if (endDateTime.getTime() <= startDateTime.getTime()) {
+                            endDateTime.setDate(endDateTime.getDate() + 1);
+                        }
+
+                        const durationMinutes = Math.round((endDateTime.getTime() - startDateTime.getTime()) / 60000);
+                        if (durationMinutes <= 0) {
+                            issues.push({ severity: "error", code: "NON_POSITIVE_DURATION", message: `Row ${r + 1} ${d}: End time must be after start time.`, ref: { row: r + 1, day: d } });
+                            continue;
+                        }
+
+                        let breakMinutes = autoBreakMinutes(durationMinutes, settings);
+
+                        if (durationMinutes >= 18 * 60) {
+                            issues.push({ severity: "warning", code: "VERY_LONG_SHIFT", message: `Row ${r + 1} ${d}: Very long shift (${Math.round(durationMinutes / 60)}h).`, ref: { row: r + 1, day: d } });
+                        }
+                        if (durationMinutes < 2 * 60) {
+                            issues.push({ severity: "warning", code: "VERY_SHORT_SHIFT", message: `Row ${r + 1} ${d}: Very short shift (${durationMinutes} mins).`, ref: { row: r + 1, day: d } });
+                        }
+
+                        if (breakMinutes >= durationMinutes) {
+                            issues.push({ severity: "error", code: "BREAK_TOO_LONG", message: `Row ${r + 1} ${d}: Break too long for shift duration.`, ref: { row: r + 1, day: d } });
+                            continue;
+                        }
+
+                        shifts.push({
+                            employee_fourth_id: rowObj.fourthId || null,
+                            employee_name: `${rowObj.firstName} ${rowObj.lastName}`.trim() || (openShift ? "Open Shift" : "Unknown"),
+                            open_shift: openShift,
+                            user_id: openShift ? null : userId,
+                            location_id: settings.locationId ? Number(settings.locationId) : null,
+                            role_id: settings.roleId ? Number(settings.roleId) : null,
+                            day: d,
+                            date_label: fmtDate(dayDate),
+                            start_minutes: startParsed.minutes,
+                            end_minutes: finishParsed.minutes,
+                            start_iso: startDateTime.toISOString(),
+                            end_iso: endDateTime.toISOString(),
+                            start_time: toUnixSeconds(startDateTime),
+                            end_time: toUnixSeconds(endDateTime),
+                            duration_minutes: durationMinutes,
+                            minutes_break: breakMinutes,
+                            published: !!settings.published,
+                            notes: "",
+                            source: { row: r + 1, sheet: S.selectedSheet, day: d, startRaw, finishRaw },
+                            flags: {
+                                overnight: endDateTime.getDate() !== dayDate.getDate(),
+                                unmapped: (!openShift && !userId),
+                            }
+                        });
+                    }
+                }
+
+                if (!settings.locationId) {
+                    issues.push({ severity: "error", code: "MISSING_LOCATION", message: `Location not selected.`, ref: {} });
+                }
+                if (!settings.roleId) {
+                    issues.push({ severity: "error", code: "MISSING_ROLE", message: `Role not selected.`, ref: {} });
+                }
+
+                return { shifts, issues, weekEnd };
+            }
+
+            async function dryRunDuplicates() {
+                const { shifts } = S.parsed;
+                const ws = S.parsed.weekStart;
+                const we = addDays(ws, 7);
+
+                log(`Checking for duplicates...`);
+
+                let existing = [];
+                try {
+                    const data = await apiFetch(`/shifts?start_time=${toUnixSeconds(ws)}&end_time=${toUnixSeconds(we)}`);
+                    if (Array.isArray(data)) existing = data;
+                    else if (data && Array.isArray(data.shifts)) existing = data.shifts;
+                    else if (data && Array.isArray(data.data)) existing = data.data;
+                    else existing = [];
+                } catch (err) {
+                    log(`Duplicate check failed: ${err.message}`);
+                    throw err;
+                }
+
+                const fp = new Set();
+                for (const e of existing) {
+                    const user = (e.user ?? e.user_id ?? null);
+                    const st = e.start_time ?? e.start ?? null;
+                    const en = e.end_time ?? e.end ?? null;
+                    const loc = e.location ?? e.location_id ?? null;
+                    const role = e.role ?? e.role_id ?? null;
+                    const open = (user === null || user === undefined) ? "OPEN" : String(user);
+                    fp.add([open, st, en, loc, role].join("|"));
+                }
+
+                let dupes = 0;
+                for (const s of shifts) {
+                    const open = s.open_shift ? "OPEN" : String(s.user_id ?? "UNMAPPED");
+                    const key = [open, s.start_time, s.end_time, s.location_id, s.role_id].join("|");
+                    s.flags.duplicate = fp.has(key);
+                    if (s.flags.duplicate) dupes++;
+                }
+
+                S.parsed.dryRun = { existingCount: existing.length, duplicateCount: dupes };
+                log(`Found ${dupes} duplicate(s) out of ${shifts.length} shifts.`);
+            }
+
+            function buildApiPayload(shifts) {
+                return shifts.map(s => {
+                    const obj = {
+                        published: !!s.published,
+                        start_time: s.start_time,
+                        end_time: s.end_time,
+                        minutes_break: Number(s.minutes_break || 0),
+                        location: Number(s.location_id),
+                        role: Number(s.role_id),
+                        notes: s.notes || ""
+                    };
+                    if (!s.open_shift) {
+                        obj.user = Number(s.user_id);
+                    }
+                    return obj;
+                });
+            }
+
+            async function uploadShifts() {
+                const shifts = S.parsed.shifts;
+                const candidates = shifts.filter(s => !s.flags.duplicate);
+
+                if (candidates.length === 0) {
+                    throw new Error("Nothing to upload (all duplicates).");
+                }
+
+                const uploadable = candidates.filter(s => {
+                    if (!S.settings.uploadOpenShifts && s.open_shift) return false;
+                    if (!s.location_id || !s.role_id) return false;
+                    if (!s.open_shift && !s.user_id) return false;
+                    return true;
+                });
+
+                const skipped = candidates.filter(s => !s.open_shift && !s.user_id).length;
+                if (skipped) log(`Skipping ${skipped} unmapped shift(s).`);
+
+                if (uploadable.length === 0) {
+                    throw new Error("Nothing to upload after applying rules.");
+                }
+
+                const payload = buildApiPayload(uploadable);
+
+                log(`Uploading ${uploadable.length} shift(s)...`);
+
+                const chunkSize = 50;
+                const results = [];
+                for (let i = 0; i < payload.length; i += chunkSize) {
+                    const chunk = payload.slice(i, i + chunkSize);
+                    const label = `${Math.floor(i / chunkSize) + 1}/${Math.ceil(payload.length / chunkSize)}`;
+                    try {
+                        log(`Uploading chunk ${label} (${chunk.length} shifts)...`);
+                        const res = await apiPost("/shifts", chunk);
+                        results.push({ ok: true, label, res });
+                        log(`✓ Chunk ${label} uploaded`);
+                    } catch (err) {
+                        results.push({ ok: false, label, error: err.message, chunk });
+                        log(`✗ Chunk ${label} failed: ${err.message}`);
+                    }
+                }
+
+                const okCount = results.filter(r => r.ok).length;
+                const failCount = results.filter(r => !r.ok).length;
+                log(`Complete: ${okCount} chunk(s) ok, ${failCount} failed.`);
+
+                return results;
+            }
+
+            function renderKPIs() {
+                const shifts = S.parsed.shifts || [];
+                const issues = S.parsed.issues || [];
+                const errors = issues.filter(i => i.severity === "error").length;
+                const warnings = issues.filter(i => i.severity === "warning").length;
+                const dupes = shifts.filter(s => s.flags.duplicate).length;
+                const unmapped = shifts.filter(s => !s.open_shift && !s.user_id).length;
+                const open = shifts.filter(s => s.open_shift).length;
+
+                const pills = [
+                    `<span class="pill"><b>${shifts.length}</b> shifts</span>`,
+                    `<span class="pill"><b>${errors}</b> errors</span>`,
+                    `<span class="pill"><b>${warnings}</b> warnings</span>`,
+                    `<span class="pill"><b>${dupes}</b> duplicates</span>`,
+                    `<span class="pill"><b>${unmapped}</b> unmapped</span>`,
+                    `<span class="pill"><b>${open}</b> open</span>`,
+                ];
+                ui.kpis.innerHTML = pills.join("");
+            }
+
+            function issueBadge(sev) {
+                return sev === "error" ? `<span class="badge bad">Error</span>` : `<span class="badge warn">Warning</span>`;
+            }
+
+            function renderPreview() {
+                const shifts = S.parsed.shifts || [];
+                const issues = S.parsed.issues || [];
+
+                renderKPIs();
+
+                if (!shifts.length && !issues.length) {
+                    ui.previewArea.innerHTML = `<div class="muted">No shifts found.</div>`;
+                    return;
+                }
+
+                const errCount = issues.filter(i => i.severity === "error").length;
+                const warnings = issues.filter(i => i.severity === "warning").length;
+
+                const issuesHtml = issues.length ? `
+                    <div style="margin-bottom:12px;">
+                        <div style="font-weight:650; margin-bottom:8px;">Issues</div>
+                        <table>
+                            <thead><tr><th style="width:90px;">Type</th><th>Message</th></tr></thead>
+                            <tbody>
+                                ${issues.slice(0, 120).map(i => `<tr><td>${issueBadge(i.severity)}</td><td>${escapeHtml(i.message)}</td></tr>`).join("")}
+                            </tbody>
+                        </table>
+                        ${issues.length > 120 ? `<div class="muted small" style="margin-top:8px;">Showing first 120 issues.</div>` : ``}
+                    </div>
+                ` : "";
+
+                const rowsHtml = shifts.slice(0, 500).map((s) => {
+                    const flags = [
+                        s.flags.overnight ? `<span class="badge warn">Overnight</span>` : "",
+                        s.flags.unmapped ? `<span class="badge bad">Unmapped</span>` : "",
+                        s.flags.duplicate ? `<span class="badge warn">Duplicate</span>` : "",
+                        s.open_shift ? `<span class="badge ok">Open</span>` : "",
+                    ].filter(Boolean).join(" ");
+
+                    return `
+                        <tr>
+                            <td>${escapeHtml(s.employee_name)}<div class="muted small">${s.employee_fourth_id ? `ID ${escapeHtml(s.employee_fourth_id)}` : `No ID`}</div></td>
+                            <td>${escapeHtml(s.date_label)}<div class="muted small">${s.day}</div></td>
+                            <td>${minutesToHHMM(s.start_minutes)}–${minutesToHHMM(s.end_minutes)}<div class="muted small">${Math.round(s.duration_minutes / 60 * 10) / 10}h</div></td>
+                            <td>${escapeHtml(String(s.minutes_break))}</td>
+                            <td>${escapeHtml(String(s.location_id ?? ""))}</td>
+                            <td>${escapeHtml(String(s.role_id ?? ""))}</td>
+                            <td>${flags || `<span class="muted">–</span>`}</td>
+                        </tr>
+                    `;
+                }).join("");
+
+                const shiftsHtml = shifts.length ? `
+                    <div>
+                        <div style="font-weight:650; margin-bottom:8px;">Shifts (${shifts.length} total, showing up to 500)</div>
+                        <table>
+                            <thead>
+                                <tr><th>Employee</th><th>Date</th><th>Time</th><th>Break</th><th>Location</th><th>Role</th><th>Flags</th></tr>
+                            </thead>
+                            <tbody>${rowsHtml}</tbody>
+                        </table>
+                    </div>
+                ` : "";
+
+                ui.previewArea.innerHTML = issuesHtml + shiftsHtml;
+
+                if (errCount > 0) {
+                    setStatus("warn", "Issues found", `${errCount} error(s). Upload is still allowed for valid shifts.`);
+                } else if (warnings > 0) {
+                    setStatus("warn", "Warnings found", `${warnings} warning(s). Review before uploading.`);
+                } else {
+                    setStatus("ok", "Ready", "No issues. Check for duplicates, then upload.");
+                }
+
+                ui.btnDryRun.disabled = shifts.length === 0;
+                ui.btnUpload.disabled = shifts.length === 0;
+            }
+
+            function escapeHtml(s) {
+                return String(s ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
+            }
+
+            // Events
+            ui.btnClear.addEventListener("click", () => resetAll(true));
+            ui.darkModeToggle.addEventListener("click", toggleTheme);
+            ui.apiKey.addEventListener("input", refreshLiveFeedback);
+
+            ui.toggleOpenShifts.addEventListener("change", () => { S.settings.uploadOpenShifts = ui.toggleOpenShifts.checked; });
+            ui.togglePublished.addEventListener("change", () => { S.settings.published = ui.togglePublished.checked; });
+            ui.toggleStrictTimes.addEventListener("change", () => { S.settings.strictTimes = ui.toggleStrictTimes.checked; });
+            ui.rememberToken.addEventListener("change", () => {
+                if (!ui.rememberToken.checked) clearSavedToken();
+                else if (ui.apiKey.value.trim()) saveToken(ui.apiKey.value.trim());
+                refreshLiveFeedback();
+            });
+
+            ui.tokenFile.addEventListener("change", async () => {
+                const f = ui.tokenFile.files?.[0];
+                if (!f) return;
+                try {
+                    const txt = await f.text();
+                    const firstNonEmpty = txt.split(/\r?\n/).find(line => line.trim().length > 0) || "";
+                    const token = firstNonEmpty.trim();
+                    if (!token) throw new Error("Token file is empty.");
+                    ui.apiKey.value = token;
+                    if (ui.rememberToken.checked) saveToken(token);
+                    log(`Loaded API token from file: ${f.name}`);
+                    setStatus("warn", "Token loaded", "Click Connect to authenticate.");
+                } catch (err) {
+                    log(`ERROR: ${err.message}`);
+                    setStatus("bad", "Token file error", err.message);
+                } finally {
+                    ui.tokenFile.value = "";
+                    refreshLiveFeedback();
+                }
+            });
+            ui.break6Input.addEventListener("change", () => {
+                S.settings.breakAfter6Hours = clampBreakMinutes(ui.break6Input.value, 30);
+                ui.break6Input.value = String(S.settings.breakAfter6Hours);
+                if (S.parsed.shifts.length || S.parsed.issues.length) ui.btnParse.click();
+                refreshLiveFeedback();
+            });
+            ui.break12Input.addEventListener("change", () => {
+                S.settings.breakAfter12Hours = clampBreakMinutes(ui.break12Input.value, 60);
+                ui.break12Input.value = String(S.settings.breakAfter12Hours);
+                if (S.parsed.shifts.length || S.parsed.issues.length) ui.btnParse.click();
+                refreshLiveFeedback();
+            });
+
+            ui.year.addEventListener("change", updateWeekDisplay);
+            ui.week.addEventListener("change", updateWeekDisplay);
+
+            ui.locationSelect.addEventListener("change", () => {
+                S.settings.locationId = ui.locationSelect.value || null;
+                if (S.parsed.shifts.length || S.parsed.issues.length) ui.btnParse.click();
+                refreshLiveFeedback();
+            });
+
+            ui.roleSelect.addEventListener("change", () => {
+                S.settings.roleId = ui.roleSelect.value || null;
+                if (S.parsed.shifts.length || S.parsed.issues.length) ui.btnParse.click();
+                refreshLiveFeedback();
+            });
+
+            ui.btnConnect.addEventListener("click", async () => {
+                ui.btnConnect.disabled = true;
+                try {
+                    const key = ui.apiKey.value.trim();
+                    if (!key) throw new Error("API token required.");
+                    S.apiKey = key;
+                    if (ui.rememberToken.checked) saveToken(key);
+                    else clearSavedToken();
+                    S.runId = new Date().toISOString().replace(/[:.]/g, "-");
+
+                    setStatus("warn", "Connecting…", "");
+                    log("Connecting to RotaCloud API…");
+
+                    const [users, roles, locations] = await Promise.all([
+                        apiFetch("/users"),
+                        apiFetch("/roles"),
+                        apiFetch("/locations")
+                    ]);
+
+                    S.users = Array.isArray(users) ? users : (users.users || users.data || []);
+                    S.roles = Array.isArray(roles) ? roles : (roles.roles || roles.data || []);
+                    S.locations = Array.isArray(locations) ? locations : (locations.locations || locations.data || []);
+
+                    S.fourthToUserId = buildFourthIdMapFromUsers(S.users);
+                    log(`Connected: ${S.users.length} users, ${S.roles.length} roles, ${S.locations.length} locations.`);
+
+                    ui.locationSelect.innerHTML = `<option value="">Choose location</option>` + S.locations.map(l =>
+                        `<option value="${l.id}">${escapeHtml(l.name || ("Location " + l.id))}</option>`
+                    ).join("");
+                    ui.roleSelect.innerHTML = `<option value="">Choose role</option>` + S.roles.map(r =>
+                        `<option value="${r.id}">${escapeHtml(r.name || ("Role " + r.id))}</option>`
+                    ).join("");
+
+                    ui.locationSelect.disabled = false;
+                    ui.roleSelect.disabled = false;
+                    ui.file.disabled = false;
+                    setStatus("ok", "Connected", "Ready to upload Excel file.");
+                } catch (err) {
+                    setStatus("bad", "Connection failed", err.message);
+                    log(`ERROR: ${err.message}`);
+                } finally {
+                    ui.btnConnect.disabled = false;
+                    refreshLiveFeedback();
+                }
+            });
+
+            ui.file.addEventListener("change", async () => {
+                const f = ui.file.files[0];
+                if (!f) return;
+
+                try {
+                    log(`Reading: ${f.name}`);
+                    const buf = await f.arrayBuffer();
+                    const wb = XLSX.read(buf, { type: "array", cellDates: false });
+                    S.workbook = wb;
+                    S.sheets = wb.SheetNames || [];
+                    ui.sheetSelect.innerHTML = S.sheets.map(n => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join("");
+                    ui.sheetSelect.disabled = false;
+                    ui.btnSuggestWeek.disabled = false;
+                    ui.btnParse.disabled = false;
+                    S.selectedSheet = S.sheets[0];
+                    ui.sheetSelect.value = S.selectedSheet;
+
+                    log(`Loaded ${S.sheets.length} sheet(s).`);
+                    setStatus("ok", "File loaded", "Parse and preview shifts.");
+
+                } catch (err) {
+                    setStatus("bad", "Read failed", err.message);
+                    log(`ERROR: ${err.message}`);
+                } finally {
+                    refreshLiveFeedback();
+                }
+            });
+
+            ui.sheetSelect.addEventListener("change", () => {
+                S.selectedSheet = ui.sheetSelect.value;
+                log(`Selected sheet: ${S.selectedSheet}`);
+                refreshLiveFeedback();
+            });
+
+            ui.btnSuggestWeek.addEventListener("click", () => {
+                const name = String(S.selectedSheet || "");
+                const m = name.match(/W(\d{1,2})/i);
+                if (m) {
+                    const w = Number(m[1]);
+                    if (w >= 1 && w <= 53) {
+                        ui.week.value = w;
+                        updateWeekDisplay();
+                        log(`Detected week ${w} from sheet name.`);
+                    }
+                } else {
+                    log(`No week pattern found in sheet name.`);
+                }
+                refreshLiveFeedback();
+            });
+
+            ui.btnParse.addEventListener("click", async () => {
+                try {
+                    if (!S.workbook) throw new Error("Upload Excel file first.");
+                    if (!S.selectedSheet) throw new Error("Select a sheet.");
+
+                    S.settings.uploadOpenShifts = ui.toggleOpenShifts.checked;
+                    S.settings.published = ui.togglePublished.checked;
+                    S.settings.strictTimes = ui.toggleStrictTimes.checked;
+                    S.settings.breakAfter6Hours = clampBreakMinutes(ui.break6Input.value, 30);
+                    S.settings.breakAfter12Hours = clampBreakMinutes(ui.break12Input.value, 60);
+                    ui.break6Input.value = String(S.settings.breakAfter6Hours);
+                    ui.break12Input.value = String(S.settings.breakAfter12Hours);
+                    S.settings.locationId = ui.locationSelect.value || null;
+                    S.settings.roleId = ui.roleSelect.value || null;
+
+                    const year = Number(ui.year.value);
+                    const week = Number(ui.week.value);
+                    if (!year || !week) throw new Error("Year and week required.");
+                    const weekStart = isoWeekStartDate(year, week);
+
+                    const matrix = sheetToMatrix(S.workbook, S.selectedSheet);
+                    const headerRowIndex = findHeaderRow(matrix);
+                    if (headerRowIndex === null) {
+                        throw new Error("Header row not found. Expected: Employee Number, First Name, Last Name, Mon Start, Mon Finish, etc.");
+                    }
+
+                    const headerRow = matrix[headerRowIndex];
+                    const mode = detectMode(headerRow);
+                    const colMap = buildColumnMap(headerRow);
+
+                    const missingDays = DAYS.filter(d => colMap.dayCols[d].start < 0 || colMap.dayCols[d].finish < 0);
+                    if (missingDays.length) {
+                        log(`Warning: Missing columns for ${missingDays.join(", ")}.`);
+                    }
+
+                    log(`Parsing "${S.selectedSheet}" (week ${week}/${year})`);
+
+                    const built = buildShiftsFromMatrix(matrix, headerRowIndex, colMap, weekStart, S.settings);
+
+                    S.parsed.mode = mode;
+                    S.parsed.headerRow = headerRowIndex;
+                    S.parsed.columnMap = colMap;
+                    S.parsed.weekStart = weekStart;
+                    S.parsed.weekEnd = built.weekEnd;
+                    S.parsed.shifts = built.shifts;
+                    S.parsed.issues = built.issues;
+                    S.parsed.dryRun = null;
+
+                    for (const s of S.parsed.shifts) {
+                        s.location_id = S.settings.locationId ? Number(S.settings.locationId) : null;
+                        s.role_id = S.settings.roleId ? Number(S.settings.roleId) : null;
+                        s.published = !!S.settings.published;
+                        s.flags.duplicate = false;
+                    }
+
+                    log(`Parsed: ${S.parsed.shifts.length} shifts, ${S.parsed.issues.length} issues.`);
+                    renderPreview();
+
+                    ui.btnDryRun.disabled = S.parsed.shifts.length === 0;
+                    ui.btnUpload.disabled = S.parsed.shifts.length === 0;
+
+                } catch (err) {
+                    setStatus("bad", "Parse failed", err.message);
+                    log(`ERROR: ${err.message}`);
+                    ui.previewArea.innerHTML = `<div class="status"><div class="dot bad"></div><div><div style="font-weight:650;">Parse failed</div><div class="muted small">${escapeHtml(err.message)}</div></div></div>`;
+                    ui.kpis.innerHTML = "";
+                    ui.btnDryRun.disabled = true;
+                    ui.btnUpload.disabled = true;
+                } finally {
+                    refreshLiveFeedback();
+                }
+            });
+
+            ui.btnDryRun.addEventListener("click", async () => {
+                ui.btnDryRun.disabled = true;
+                try {
+                    await dryRunDuplicates();
+                    renderPreview();
+                    setStatus("ok", "Ready to upload", "Duplicates marked. Upload to proceed.");
+                } catch (err) {
+                    setStatus("bad", "Check failed", err.message);
+                } finally {
+                    ui.btnDryRun.disabled = false;
+                    refreshLiveFeedback();
+                }
+            });
+
+            ui.btnUpload.addEventListener("click", async () => {
+                ui.btnUpload.disabled = true;
+                try {
+                    const results = await uploadShifts();
+                    const failed = results.filter(r => !r.ok).length;
+                    if (failed) {
+                        setStatus("warn", "Partial failure", `${failed} chunk(s) failed. Check log.`);
+                    } else {
+                        setStatus("ok", "Upload complete", "All shifts uploaded successfully.");
+                    }
+                } catch (err) {
+                    setStatus("bad", "Upload failed", err.message);
+                    log(`ERROR: ${err.message}`);
+                } finally {
+                    ui.btnUpload.disabled = false;
+                    refreshLiveFeedback();
+                }
+            });
+
+            // Initialize
+            initTheme();
+            resetAll();
+        })();
+    </script>
+</body>
+</html>
